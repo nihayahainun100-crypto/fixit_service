@@ -262,14 +262,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               onPressed: () => _handleRegister(authProvider),
                               style: ElevatedButton.styleFrom(
                                 padding: const EdgeInsets.symmetric(vertical: 14),
-                                backgroundColor: const Color(0xFF1A237E),
+                                backgroundColor: const Color(0xFF1565C0), // Blue
+                                foregroundColor: Colors.white,            // White text
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
+                                elevation: 2,
                               ),
                               child: const Text(
                                 'Daftar',
-                                style: TextStyle(fontSize: 16),
+                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                               ),
                             ),
                           ),

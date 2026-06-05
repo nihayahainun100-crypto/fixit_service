@@ -2,9 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../models/technician_model.dart';
-import '../../providers/app_provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/booking_provider.dart';
-import '../../services/mock_data.dart';
+
+// 🔥 LIST SERVICE TYPES (langsung di dalam file)
+List<String> getServiceTypes() {
+  return [
+    'Diagnostic',
+    'Virus Removal',
+    'Hardware Repair',
+    'Software Installation',
+    'Data Recovery',
+    'Upgrade RAM/SSD',
+  ];
+}
 
 class BookingScreen extends StatefulWidget {
   final Technician technician;
@@ -30,8 +41,9 @@ class _BookingScreenState extends State<BookingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final appProvider = Provider.of<AppProvider>(context);
+    final authProvider = Provider.of<AuthProvider>(context);
     final bookingProvider = Provider.of<BookingProvider>(context);
+    final user = authProvider.currentUser;
     
     return Scaffold(
       appBar: AppBar(
@@ -58,7 +70,7 @@ class _BookingScreenState extends State<BookingScreen> {
                         children: [
                           CircleAvatar(
                             radius: 20,
-                            backgroundImage: NetworkImage(widget.technician.photoUrl),
+                            child: Icon(Icons.handyman, color: Colors.blue.shade900),
                           ),
                           const SizedBox(width: 12),
                           Column(
@@ -216,7 +228,7 @@ class _BookingScreenState extends State<BookingScreen> {
                       );
                       
                       await bookingProvider.createBooking(
-                        userId: appProvider.currentUserId,
+                        userId: user?.email ?? 'customer',
                         technician: widget.technician,
                         serviceType: _selectedServiceType,
                         basePrice: _basePrice,

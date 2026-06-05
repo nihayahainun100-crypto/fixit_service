@@ -1,49 +1,59 @@
 class Technician {
-  final String id;
+  int? id;
+  final String userId;
   final String name;
   final String phone;
+  final String email;
+  final String shopName;
   final String address;
-  final String locationArea; // Indramayu, Jatibarang, etc.
-  final double rating;
-  final int totalReviews;
-  final int priceEstimate; // harga estimasi per service
-  final String photoUrl;
+  final String locationArea;
   final List<String> specialties;
+  final int priceEstimate;
   final bool isPremiumListing;
   final bool isAvailable;
-  final String shopName;
+  final String photoUrl;
+  double rating;
+  int totalReviews;
 
   Technician({
-    required this.id,
+    this.id,
+    required this.userId,
     required this.name,
     required this.phone,
+    required this.email,
+    required this.shopName,
     required this.address,
     required this.locationArea,
-    required this.rating,
-    required this.totalReviews,
-    required this.priceEstimate,
-    required this.photoUrl,
     required this.specialties,
+    required this.priceEstimate,
     this.isPremiumListing = false,
     this.isAvailable = true,
-    required this.shopName,
+    this.photoUrl = '',
+    this.rating = 0,
+    this.totalReviews = 0,
   });
 
-  factory Technician.fromMap(Map<String, dynamic> map) {
+  factory Technician.fromJson(Map<String, dynamic> json) {
+    print('🔧 Parsing JSON: $json');
+    
     return Technician(
-      id: map['id'],
-      name: map['name'],
-      phone: map['phone'],
-      address: map['address'],
-      locationArea: map['locationArea'],
-      rating: map['rating'],
-      totalReviews: map['totalReviews'],
-      priceEstimate: map['priceEstimate'],
-      photoUrl: map['photoUrl'],
-      specialties: List<String>.from(map['specialties']),
-      isPremiumListing: map['isPremiumListing'] ?? false,
-      isAvailable: map['isAvailable'] ?? true,
-      shopName: map['shopName'],
+      id: json['id'] ?? 0,
+      userId: json['user_id']?.toString() ?? '0',
+      name: json['name'] ?? 'Tidak ada nama',
+      phone: json['phone'] ?? '',
+      email: json['email'] ?? '',
+      shopName: json['shop_name'] ?? '',
+      address: json['address'] ?? '',
+      locationArea: json['location_area'] ?? '',
+      specialties: json['specialties'] is List 
+          ? List<String>.from(json['specialties']) 
+          : [],
+      priceEstimate: json['price_estimate'] ?? 0,
+      isPremiumListing: json['is_premium'] ?? false,
+      isAvailable: json['is_available'] ?? true,
+      photoUrl: json['photo_url'] ?? '',
+      rating: json['rating']?.toDouble() ?? 0,
+      totalReviews: json['total_reviews'] ?? 0,
     );
   }
 }

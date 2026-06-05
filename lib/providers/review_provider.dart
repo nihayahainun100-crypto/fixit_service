@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/review_model.dart';
 import '../models/technician_model.dart';
+import '../services/api_service.dart';
 
 class ReviewProvider extends ChangeNotifier {
   List<Review> _reviews = [];
@@ -39,6 +40,16 @@ class ReviewProvider extends ChangeNotifier {
     
     _reviews.add(review);
     notifyListeners();
+
+    // Send to server database
+    await ApiService.createReview({
+      'booking_id': bookingId,
+      'technician_id': technicianId,
+      'user_id': userId,
+      'user_name': userName,
+      'rating': rating,
+      'comment': comment,
+    });
   }
   
   // Update technician rating (mock)
