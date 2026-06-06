@@ -65,33 +65,81 @@ class _DaftarTeknisiScreenState extends State<DaftarTeknisiScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Hapus Teknisi'),
-        content: Text('Apakah Anda yakin ingin menghapus $name?'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Apakah Anda yakin ingin menghapus:'),
+            const SizedBox(height: 8),
+            Text('"$name"', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            const SizedBox(height: 8),
+            const Text('Tindakan ini tidak dapat dibatalkan.', style: TextStyle(color: Colors.red, fontSize: 12)),
+          ],
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Batal')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Hapus', style: TextStyle(color: Colors.red))),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Hapus'),
+          ),
         ],
       ),
     );
 
     if (confirm == true) {
       if (!mounted) return;
-      
+
       setState(() => _isLoading = true);
-      
-      final result = await ApiService.deleteTeknisi(id);
-      
-      if (!mounted) return;
-      
-      if (result['success'] == true) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Teknisi berhasil dihapus'), backgroundColor: Colors.green),
-        );
-        await _loadTeknisi();
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(result['message'] ?? 'Gagal menghapus'), backgroundColor: Colors.red),
-        );
-        setState(() => _isLoading = false);
+
+      try {
+        final result = await ApiService.deleteTeknisi(id);
+
+        if (!mounted) return;
+
+        if (result['success'] == true) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('✅ Teknisi berhasil dihapus'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          await _loadTeknisi();
+        } else {
+          setState(() => _isLoading = false);
+          showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: const Row(
+                children: [
+                  Icon(Icons.error_outline, color: Colors.red),
+                  SizedBox(width: 8),
+                  Text('Gagal Menghapus'),
+                ],
+              ),
+              content: Text(result['message'] ?? 'Terjadi kesalahan yang tidak diketahui'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          setState(() => _isLoading = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     }
   }

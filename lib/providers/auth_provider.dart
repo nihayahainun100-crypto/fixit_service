@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 import '../models/user_model.dart';
-// HAPUS import api_service.dart dan role_picker_screen.dart dari sini
 
 class AuthProvider extends ChangeNotifier {
   UserModel? _currentUser;
@@ -17,9 +17,29 @@ class AuthProvider extends ChangeNotifier {
   bool get isLoggedIn => _currentUser != null;
   bool get isLoading => _isLoading;
 
+  // ==================== AMBIL ROLE DARI DATABASE ====================
+  
+  Future<String> _getUserRoleFromDatabase(String email) async {
+    try {
+      final url = Uri.parse('http://192.168.0.104/fixit_api/get_user_role.php?email=$email');
+      final response = await http.get(url).timeout(const Duration(seconds: 5));
+      
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true) {
+          print('📋 Role dari API: ${data['role']}');
+          return data['role'] ?? 'customer';
+        }
+      }
+      return 'customer';
+    } catch (e) {
+      print('❌ Get role error: $e');
+      return 'customer';
+    }
+  }
+
   // ==================== GOOGLE SIGN-IN ====================
   
-  // Return data user, navigasi di handle di UI
   Future<Map<String, dynamic>?> signInWithGoogle() async {
     _isLoading = true;
     notifyListeners();
@@ -51,31 +71,19 @@ class AuthProvider extends ChangeNotifier {
         print('User email: $userEmail');
         print('User name: $userName');
         
-        // CEK DI SHAREDPREFERENCES LOKAL
-        final prefs = await SharedPreferences.getInstance();
-        final usersWithRoles = prefs.getStringList('users_with_roles') ?? [];
+        // Ambil role dari database
+        String role = await _getUserRoleFromDatabase(userEmail);
         
-        String? existingRole;
-        for (var jsonStr in usersWithRoles) {
-          final data = jsonDecode(jsonStr);
-          if (data['email'] == userEmail) {
-            existingRole = data['role'];
-            break;
-          }
-        }
-        
-        print('Existing role: $existingRole');
-        
-        if (existingRole != null) {
-          // USER SUDAH ADA, LANGSUNG LOGIN
+        if (role != 'customer') {
           _currentUser = UserModel(
             id: userId,
             name: userName,
             email: userEmail,
             phone: firebaseUser.phoneNumber ?? '',
-            role: existingRole,
+            role: role,
           );
           
+          final prefs = await SharedPreferences.getInstance();
           await prefs.setString('user', jsonEncode(_currentUser!.toMap()));
           
           _isLoading = false;
@@ -88,7 +96,6 @@ class AuthProvider extends ChangeNotifier {
             'user': _currentUser,
           };
         } else {
-          // USER BARU, butuh pilih role
           _isLoading = false;
           notifyListeners();
           
@@ -114,7 +121,6 @@ class AuthProvider extends ChangeNotifier {
     }
   }
   
-  // Simpan user setelah pilih role
   Future<bool> saveUserAfterGoogleLogin({
     required String id,
     required String name,
@@ -134,28 +140,25 @@ class AuthProvider extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('user', jsonEncode(_currentUser!.toMap()));
     
-    // Simpan juga ke daftar users dengan role
-    List<String> usersWithRoles = prefs.getStringList('users_with_roles') ?? [];
-    bool exists = false;
-    
-    for (int i = 0; i < usersWithRoles.length; i++) {
-      final data = jsonDecode(usersWithRoles[i]);
-      if (data['email'] == email) {
-        usersWithRoles[i] = jsonEncode({'email': email, 'role': role});
-        exists = true;
-        break;
-      }
-    }
-    
-    if (!exists) {
-      usersWithRoles.add(jsonEncode({'email': email, 'role': role}));
-    }
-    
-    await prefs.setStringList('users_with_roles', usersWithRoles);
+    // Simpan ke database
+    await _saveUserToDatabase(email, name, role);
     
     notifyListeners();
     print('User saved successfully');
     return true;
+  }
+  
+  Future<void> _saveUserToDatabase(String email, String name, String role) async {
+    try {
+      final url = Uri.parse('http://192.168.0.104/fixit_api/save_user.php');
+      final response = await http.post(
+        url,
+        body: {'email': email, 'name': name, 'role': role},
+      );
+      print('📡 Save user to DB: ${response.body}');
+    } catch (e) {
+      print('❌ Failed to save user to database: $e');
+    }
   }
 
   // ==================== EMAIL/PASSWORD LOGIN ====================
@@ -172,17 +175,9 @@ class AuthProvider extends ChangeNotifier {
       
       final firebase_auth.User? firebaseUser = userCredential.user;
       if (firebaseUser != null) {
-        final prefs = await SharedPreferences.getInstance();
-        final usersWithRoles = prefs.getStringList('users_with_roles') ?? [];
-        
-        String role = 'customer';
-        for (var jsonStr in usersWithRoles) {
-          final data = jsonDecode(jsonStr);
-          if (data['email'] == email) {
-            role = data['role'];
-            break;
-          }
-        }
+        // Ambil role dari database
+        String role = await _getUserRoleFromDatabase(email);
+        print('📋 Role dari database untuk $email: $role');
         
         _currentUser = UserModel(
           id: firebaseUser.uid,
@@ -192,6 +187,7 @@ class AuthProvider extends ChangeNotifier {
           role: role,
         );
         
+        final prefs = await SharedPreferences.getInstance();
         await prefs.setString('user', jsonEncode(_currentUser!.toMap()));
         
         _isLoading = false;
@@ -243,9 +239,8 @@ class AuthProvider extends ChangeNotifier {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('user', jsonEncode(_currentUser!.toMap()));
         
-        List<String> usersWithRoles = prefs.getStringList('users_with_roles') ?? [];
-        usersWithRoles.add(jsonEncode({'email': email, 'role': 'customer'}));
-        await prefs.setStringList('users_with_roles', usersWithRoles);
+        // Simpan ke database
+        await _saveUserToDatabase(email, name, 'customer');
         
         _isLoading = false;
         notifyListeners();

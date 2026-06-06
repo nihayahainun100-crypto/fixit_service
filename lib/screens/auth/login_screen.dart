@@ -22,49 +22,65 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
 
   Future<void> _handleLogin(AuthProvider authProvider) async {
-    if (_formKey.currentState == null) return;
+  if (_formKey.currentState == null) return;
 
-    if (_formKey.currentState!.validate()) {
-      setState(() => _isLoading = true);
+  if (_formKey.currentState!.validate()) {
+    setState(() => _isLoading = true);
 
-      final email = _emailController.text.trim();
-      final password = _passwordController.text;
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
 
-      try {
-        final success = await authProvider.login(email: email, password: password);
+    try {
+      final success = await authProvider.login(email: email, password: password);
 
-        if (mounted) setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
 
-        if (success && mounted) {
-          final user = authProvider.currentUser;
-
-          if (user != null) {
-            if (user.role == 'technician') {
-              Navigator.pushReplacement(
-                  context, MaterialPageRoute(builder: (_) => const TechnicianDashboardScreen()));
-            } else if (user.role == 'admin') {
-              Navigator.pushReplacement(
-                  context, MaterialPageRoute(builder: (_) => const AdminDashboardScreen()));
-            } else {
-              Navigator.pushReplacement(
-                  context, MaterialPageRoute(builder: (_) => const CustomerHomeScreen()));
-            }
-          }
-        } else if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Email atau password salah!'), backgroundColor: Colors.red),
+      if (success && mounted) {
+        final user = authProvider.currentUser;
+        
+        print(' USER ROLE: ${user?.role} ');
+        print(' USER EMAIL: ${user?.email} ');
+        
+        // 🔥 PAKSA BERDASARKAN ROLE
+        if (user?.role == 'technician') {
+          print('✅ MASUK KE TECHNICIAN DASHBOARD');
+          Navigator.pushReplacement(
+            context, 
+            MaterialPageRoute(builder: (_) => const TechnicianDashboardScreen())
+          );
+        } else if (user?.role == 'admin') {
+          print('✅ MASUK KE ADMIN DASHBOARD');
+          Navigator.pushReplacement(
+            context, 
+            MaterialPageRoute(builder: (_) => const AdminDashboardScreen())
+          );
+        } else {
+          print('✅ MASUK KE CUSTOMER HOME');
+          Navigator.pushReplacement(
+            context, 
+            MaterialPageRoute(builder: (_) => const CustomerHomeScreen())
           );
         }
-      } catch (e) {
-        if (mounted) {
-          setState(() => _isLoading = false);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
-          );
-        }
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Email atau password salah!'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      print('Login error: $e');
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+        );
       }
     }
   }
+}
+
 
   Future<void> _handleGoogleSignIn(AuthProvider authProvider) async {
     setState(() => _isLoading = true);
@@ -86,9 +102,12 @@ class _LoginScreenState extends State<LoginScreen> {
           );
         } else {
           final user = result['user'];
-          if (user != null && user.role == 'technician') {
+          if (user != null && user.role == 'teknisi') {
             Navigator.pushReplacement(
                 context, MaterialPageRoute(builder: (_) => const TechnicianDashboardScreen()));
+          } else if (user != null && user.role == 'admin') {
+            Navigator.pushReplacement(
+                context, MaterialPageRoute(builder: (_) => const AdminDashboardScreen()));
           } else {
             Navigator.pushReplacement(
                 context, MaterialPageRoute(builder: (_) => const CustomerHomeScreen()));

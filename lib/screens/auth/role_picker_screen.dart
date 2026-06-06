@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../customer/customer_home_screen.dart';
 import '../technician/technician_dashboard_screen.dart';
+import '../admin/admin_dashboard_screen.dart';
 
 class RolePickerScreen extends StatelessWidget {
   final String email;
@@ -29,7 +30,12 @@ class RolePickerScreen extends StatelessWidget {
       );
 
       if (success && context.mounted) {
-        if (role == 'technician') {
+        if (role == 'admin') {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const AdminDashboardScreen()),
+          );
+        } else if (role == 'technician') {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (_) => const TechnicianDashboardScreen()),
@@ -93,20 +99,31 @@ class RolePickerScreen extends StatelessWidget {
                       padding: const EdgeInsets.all(20),
                       child: Column(
                         children: [
+                          // 🔥 TOMBOL ADMIN
                           _buildRoleButton(
-                            icon: Icons.person,
-                            title: 'Customer',
-                            subtitle: 'Cari & Booking Service',
-                            color: Colors.green,
-                            onTap: () => _selectRole('customer'),
+                            icon: Icons.admin_panel_settings,
+                            title: 'Admin',
+                            subtitle: 'Kelola Teknisi & Customer',
+                            color: Colors.red,
+                            onTap: () => _selectRole('admin'),
                           ),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 16),
+                          // 🔥 TOMBOL TEKNISI
                           _buildRoleButton(
                             icon: Icons.handyman,
                             title: 'Teknisi',
                             subtitle: 'Kelola Order Service',
                             color: Colors.orange,
                             onTap: () => _selectRole('technician'),
+                          ),
+                          const SizedBox(height: 16),
+                          // 🔥 TOMBOL CUSTOMER
+                          _buildRoleButton(
+                            icon: Icons.person,
+                            title: 'Customer',
+                            subtitle: 'Cari & Booking Service',
+                            color: Colors.green,
+                            onTap: () => _selectRole('customer'),
                           ),
                         ],
                       ),
@@ -132,7 +149,7 @@ class RolePickerScreen extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 20),
+        padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
           color: color.withOpacity(0.1),
           borderRadius: BorderRadius.circular(16),
@@ -141,7 +158,7 @@ class RolePickerScreen extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 32, color: color),
+            Icon(icon, size: 28, color: color),
             const SizedBox(width: 16),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,

@@ -116,47 +116,89 @@ class _TambahTeknisiScreenState extends State<TambahTeknisiScreen> {
   }
 
   Future<void> _saveTeknisi() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() => _isLoading = true);
+    if (!_formKey.currentState!.validate()) {
+      // Scroll ke atas untuk menampilkan error pertama
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Periksa kembali isian form yang belum benar'),
+          backgroundColor: Colors.orange,
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
 
-      String? photoUrl = await _uploadImage();
+    setState(() => _isLoading = true);
 
-      final Map<String, dynamic> data = {
-        'name': _nameController.text,
-        'specialties': _selectedSpecialty,
-        'location_area': _selectedLocation,
-        'price_estimate': int.parse(_priceController.text),
-        'is_premium': _isPremium,
-        'is_available': _isAvailable,
-        'shop_name': _shopNameController.text,
-        'phone': _phoneController.text,
-        'email': _emailController.text,
-        'address': _addressController.text,
-        'experience': _experienceController.text,
-        'photo_url': photoUrl ?? '',
-      };
-
-      Map<String, dynamic> result;
-      if (widget.teknisi?.id != null) {
-        data['id'] = widget.teknisi!.id!;
-        result = await ApiService.updateTeknisi(data);
-      } else {
-        result = await ApiService.createTeknisi(data);
-      }
-
+    // Upload foto terlebih dahulu jika ada gambar baru
+    String? photoUrl;
+    try {
+      photoUrl = await _uploadImage();
+    } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        
-        if (result['success'] == true) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(result['message']), backgroundColor: Colors.green),
-          );
-          Navigator.pop(context, true);
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(result['message'] ?? 'Gagal menyimpan'), backgroundColor: Colors.red),
-          );
-        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal upload foto: $e'), backgroundColor: Colors.red),
+        );
+      }
+      return;
+    }
+
+    final Map<String, dynamic> data = {
+      'name': _nameController.text.trim(),
+      'specialties': _selectedSpecialty,
+      'location_area': _selectedLocation,
+      'price_estimate': int.parse(_priceController.text.trim()),
+      'is_premium': _isPremium,
+      'is_available': _isAvailable,
+      'shop_name': _shopNameController.text.trim(),
+      'phone': _phoneController.text.trim(),
+      'email': _emailController.text.trim(),
+      'address': _addressController.text.trim(),
+      'experience': _experienceController.text.trim(),
+      'photo_url': photoUrl ?? '',
+    };
+
+    Map<String, dynamic> result;
+    if (widget.teknisi?.id != null) {
+      data['id'] = widget.teknisi!.id!;
+      result = await ApiService.updateTeknisi(data);
+    } else {
+      result = await ApiService.createTeknisi(data);
+    }
+
+    if (mounted) {
+      setState(() => _isLoading = false);
+
+      if (result['success'] == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['message'] ?? 'Teknisi berhasil disimpan'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.pop(context, true);
+      } else {
+        // Tampilkan dialog error yang lebih informatif
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Row(
+              children: [
+                Icon(Icons.error_outline, color: Colors.red),
+                SizedBox(width: 8),
+                Text('Gagal Menyimpan'),
+              ],
+            ),
+            content: Text(result['message'] ?? 'Terjadi kesalahan yang tidak diketahui'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
       }
     }
   }
@@ -224,40 +266,97 @@ class _TambahTeknisiScreenState extends State<TambahTeknisiScreen> {
                   child: LinearProgressIndicator(),
                 ),
               const SizedBox(height: 20),
-              
-              // Form lainnya
+
+              // Nama Teknisi
               TextFormField(
                 controller: _nameController,
-                decoration: const InputDecoration(labelText: 'Nama Teknisi', border: OutlineInputBorder()),
-                validator: (v) => v!.isEmpty ? 'Masukkan nama' : null,
+                decoration: const InputDecoration(
+                  labelText: 'Nama Teknisi *',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.person),
+                ),
+                validator: (v) {
+                  if (v == null || v.trim().isEmpty) return 'Nama tidak boleh kosong';
+                  if (v.trim().length < 3) return 'Nama minimal 3 karakter';
+                  if (v.trim().length > 100) return 'Nama maksimal 100 karakter';
+                  return null;
+                },
               ),
               const SizedBox(height: 12),
+
+              // Email
               TextFormField(
                 controller: _emailController,
-                decoration: const InputDecoration(labelText: 'Email', border: OutlineInputBorder()),
+                decoration: const InputDecoration(
+                  labelText: 'Email *',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.email),
+                ),
                 keyboardType: TextInputType.emailAddress,
+                validator: (v) {
+                  if (v == null || v.trim().isEmpty) return 'Email tidak boleh kosong';
+                  final emailRegex = RegExp(r'^[\w.-]+@[\w.-]+\.[a-zA-Z]{2,}$');
+                  if (!emailRegex.hasMatch(v.trim())) return 'Format email tidak valid';
+                  return null;
+                },
               ),
               const SizedBox(height: 12),
+
+              // No Telepon
               TextFormField(
                 controller: _phoneController,
-                decoration: const InputDecoration(labelText: 'No Telepon', border: OutlineInputBorder()),
+                decoration: const InputDecoration(
+                  labelText: 'No Telepon *',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.phone),
+                  hintText: 'Contoh: 08123456789',
+                ),
                 keyboardType: TextInputType.phone,
+                validator: (v) {
+                  if (v == null || v.trim().isEmpty) return 'No telepon tidak boleh kosong';
+                  final phoneRegex = RegExp(r'^[0-9+\-\s]{8,15}$');
+                  if (!phoneRegex.hasMatch(v.trim())) return 'Format no telepon tidak valid (8-15 digit)';
+                  return null;
+                },
               ),
               const SizedBox(height: 12),
+
+              // Deskripsi / Nama Toko
               TextFormField(
                 controller: _shopNameController,
-                decoration: const InputDecoration(labelText: 'Deskripsi / Nama Toko', border: OutlineInputBorder()),
+                decoration: const InputDecoration(
+                  labelText: 'Deskripsi / Nama Toko',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.store),
+                ),
               ),
               const SizedBox(height: 12),
+
+              // Alamat
               TextFormField(
                 controller: _addressController,
-                decoration: const InputDecoration(labelText: 'Alamat', border: OutlineInputBorder()),
+                decoration: const InputDecoration(
+                  labelText: 'Alamat *',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.location_on),
+                ),
                 maxLines: 2,
+                validator: (v) {
+                  if (v == null || v.trim().isEmpty) return 'Alamat tidak boleh kosong';
+                  if (v.trim().length < 5) return 'Alamat terlalu pendek';
+                  return null;
+                },
               ),
               const SizedBox(height: 12),
+
+              // Pengalaman
               TextFormField(
                 controller: _experienceController,
-                decoration: const InputDecoration(labelText: 'Pengalaman (contoh: 8 Tahun)', border: OutlineInputBorder()),
+                decoration: const InputDecoration(
+                  labelText: 'Pengalaman (contoh: 8 Tahun)',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.work_history),
+                ),
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
@@ -274,11 +373,24 @@ class _TambahTeknisiScreenState extends State<TambahTeknisiScreen> {
                 onChanged: (v) => setState(() => _selectedSpecialty = v!),
               ),
               const SizedBox(height: 12),
+              // Estimasi Harga
               TextFormField(
                 controller: _priceController,
-                decoration: const InputDecoration(labelText: 'Estimasi Harga', border: OutlineInputBorder(), prefixText: 'Rp '),
+                decoration: const InputDecoration(
+                  labelText: 'Estimasi Harga *',
+                  border: OutlineInputBorder(),
+                  prefixText: 'Rp ',
+                  prefixIcon: Icon(Icons.attach_money),
+                ),
                 keyboardType: TextInputType.number,
-                validator: (v) => v!.isEmpty ? 'Masukkan harga' : null,
+                validator: (v) {
+                  if (v == null || v.trim().isEmpty) return 'Estimasi harga tidak boleh kosong';
+                  final parsed = int.tryParse(v.trim());
+                  if (parsed == null) return 'Harga harus berupa angka';
+                  if (parsed <= 0) return 'Harga harus lebih dari 0';
+                  if (parsed > 100000000) return 'Harga tidak valid (terlalu besar)';
+                  return null;
+                },
               ),
               const SizedBox(height: 12),
               SwitchListTile(
