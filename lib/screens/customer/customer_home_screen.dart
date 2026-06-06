@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/app_provider.dart';
 import '../../services/api_service.dart';
 import '../../models/technician_model.dart';
+import '../../widgets/announcement_banner.dart';
 import 'technician_detail_screen.dart';
 import 'my_bookings_screen.dart';
 import '../auth/login_screen.dart';
@@ -88,7 +90,12 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
           IconButton(icon: const Icon(Icons.logout), onPressed: () => _showLogoutDialog(context, authProvider)),
         ],
       ),
-      body: screens[_selectedIndex],
+      body: Column(
+        children: [
+          AnnouncementBanner(defaultColor: Colors.blue.shade700),
+          Expanded(child: screens[_selectedIndex]),
+        ],
+      ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: (index) => setState(() => _selectedIndex = index),

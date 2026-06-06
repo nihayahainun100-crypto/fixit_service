@@ -47,7 +47,9 @@ class Technician {
       locationArea: json['location_area'] ?? '',
       specialties: json['specialties'] is List 
           ? List<String>.from(json['specialties']) 
-          : [],
+          : (json['specialties'] is String 
+              ? [json['specialties'] as String] 
+              : []),
       priceEstimate: json['price_estimate'] ?? 0,
       isPremiumListing: json['is_premium'] ?? false,
       isAvailable: json['is_available'] ?? true,

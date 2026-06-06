@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
-import 'auth/login_screen.dart';        // ← path yang benar
-import 'customer/customer_home_screen.dart';  // ← path yang benar
+import 'auth/login_screen.dart';
+import 'customer/customer_home_screen.dart';
+import 'technician/technician_dashboard_screen.dart';
+import 'admin/admin_dashboard_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -30,12 +32,29 @@ class _SplashScreenState extends State<SplashScreen> {
     if (!mounted) return;
 
     if (authProvider.isLoggedIn) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => const CustomerHomeScreen(),
-        ),
-      );
+      final role = authProvider.currentUser?.role;
+      if (role == 'technician') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const TechnicianDashboardScreen(),
+          ),
+        );
+      } else if (role == 'admin') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const AdminDashboardScreen(),
+          ),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const CustomerHomeScreen(),
+          ),
+        );
+      }
     } else {
       Navigator.pushReplacement(
         context,

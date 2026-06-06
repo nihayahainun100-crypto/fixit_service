@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/booking_provider.dart';
+import '../../providers/app_provider.dart';
 import '../../services/api_service.dart';
 import '../../models/technician_model.dart';
 import '../../models/booking_model.dart';
+import '../../widgets/announcement_banner.dart';
 import '../auth/login_screen.dart'; 
 import 'order_detail_screen.dart';
 
@@ -28,16 +30,23 @@ class _TechnicianDashboardScreenState extends State<TechnicianDashboardScreen> {
   }
   
   Future<void> _loadTechnicianProfile() async {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final email = authProvider.currentUser?.email ?? '';
-    
-    final result = await ApiService.getTechnicianByEmail(email);
-    if (result['success'] == true) {
-      setState(() {
-        _technicianData = Technician.fromJson(result['technician']);
-        _isLoadingProfile = false;
-      });
-    } else {
+    try {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final email = authProvider.currentUser?.email ?? '';
+      
+      final result = await ApiService.getTechnicianByEmail(email);
+      final technicianJson = result['teknisi'] ?? result['technician'];
+      
+      if (result['success'] == true && technicianJson != null) {
+        setState(() {
+          _technicianData = Technician.fromJson(technicianJson);
+          _isLoadingProfile = false;
+        });
+      } else {
+        setState(() => _isLoadingProfile = false);
+      }
+    } catch (e) {
+      print('❌ Error loading technician profile: $e');
       setState(() => _isLoadingProfile = false);
     }
   }
@@ -95,7 +104,12 @@ class _TechnicianDashboardScreenState extends State<TechnicianDashboardScreen> {
           ),
         ],
       ),
-      body: screens[_selectedIndex],
+      body: Column(
+        children: [
+          AnnouncementBanner(defaultColor: Colors.orange.shade700),
+          Expanded(child: screens[_selectedIndex]),
+        ],
+      ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: (index) => setState(() => _selectedIndex = index),

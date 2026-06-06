@@ -102,7 +102,7 @@ class _LoginScreenState extends State<LoginScreen> {
           );
         } else {
           final user = result['user'];
-          if (user != null && user.role == 'teknisi') {
+          if (user != null && user.role == 'technician') {
             Navigator.pushReplacement(
                 context, MaterialPageRoute(builder: (_) => const TechnicianDashboardScreen()));
           } else if (user != null && user.role == 'admin') {

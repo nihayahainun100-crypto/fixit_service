@@ -1,19 +1,36 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 
+/// AppProvider manages global application configuration and announcement state.
+///
+/// Under clean architecture rules, this provider contains only business logic
+/// and state variables. All UI layout and presentation (widgets, context)
+/// are strictly separated into the widget layer (e.g. AnnouncementBanner).
 class AppProvider extends ChangeNotifier {
-  // Hapus UserRole enum dan ganti role, karena role sudah ditentukan dari login
-  
-  // Cukup simpan info user dari AuthProvider
-  bool _isTechnician = false;
-  
-  bool get isTechnician => _isTechnician;
+  // Global announcement state
+  String _announcement = "Promo Spesial Juni: Diskon Service Laptop 10%!";
+  bool _isMaintenanceMode = false;
+  int _activeNotificationCount = 3;
 
-  String? get currentUserName => null;
+  String get announcement => _announcement;
+  bool get isMaintenanceMode => _isMaintenanceMode;
+  int get activeNotificationCount => _activeNotificationCount;
 
-  get currentUserId => null;
-  
-  void setTechnicianMode(bool isTech) {
-    _isTechnician = isTech;
+  void updateAnnouncement(String newAnnouncement) {
+    if (_announcement != newAnnouncement) {
+      _announcement = newAnnouncement;
+      notifyListeners();
+    }
+  }
+
+  void toggleMaintenanceMode() {
+    _isMaintenanceMode = !_isMaintenanceMode;
     notifyListeners();
+  }
+
+  void clearNotifications() {
+    if (_activeNotificationCount != 0) {
+      _activeNotificationCount = 0;
+      notifyListeners();
+    }
   }
 }
