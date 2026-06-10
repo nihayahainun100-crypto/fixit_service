@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/booking_provider.dart';
-import '../../providers/app_provider.dart';
 import '../../services/api_service.dart';
+import '../../services/notification_service.dart';
 import '../../models/technician_model.dart';
 import '../../models/booking_model.dart';
 import '../../widgets/announcement_banner.dart';
-import '../auth/login_screen.dart'; 
+import '../../services/socket_service.dart';
+import '../../providers/app_provider.dart';
+import '../auth/login_screen.dart';
 import 'order_detail_screen.dart';
 
 class TechnicianDashboardScreen extends StatefulWidget {
@@ -25,8 +27,77 @@ class _TechnicianDashboardScreenState extends State<TechnicianDashboardScreen> {
   @override
   void initState() {
     super.initState();
-    _loadBookings();
     _loadTechnicianProfile();
+    // Mulai polling dan socket connection setelah frame pertama selesai agar context tersedia
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _startRealtimeConnection();
+    });
+  }
+
+  @override
+  void dispose() {
+    final bookingProvider =
+        Provider.of<BookingProvider>(context, listen: false);
+    bookingProvider.stopPolling();
+    SocketService().disconnect();
+    super.dispose();
+  }
+
+  void _startRealtimeConnection() {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final bookingProvider =
+        Provider.of<BookingProvider>(context, listen: false);
+    final appProvider = Provider.of<AppProvider>(context, listen: false);
+    
+    final technicianId = authProvider.currentUser?.email ?? '';
+    if (technicianId.isEmpty) return;
+
+    bookingProvider.startPolling(
+      technicianId,
+      onNewBooking: _onNewBookingReceived,
+    );
+
+    SocketService().connect(
+      onBookingReceived: (data) {
+        print('🔔 Socket: Booking received $data');
+        bookingProvider.loadBookingsForTechnician(technicianId);
+      },
+      onAnnouncementReceived: (data) {
+        final message = data['message'] ?? '';
+        appProvider.updateAnnouncement(message);
+      },
+    );
+  }
+
+  void _onNewBookingReceived(Booking booking) {
+    NotificationService().showNotification(
+      title: '🔔 Booking Baru Masuk!',
+      body:
+          '${booking.customerName} memesan ${booking.serviceType}. Segera cek order!',
+    );
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.notifications_active, color: Colors.white),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Booking baru dari ${booking.customerName}!',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: Colors.orange.shade800,
+          duration: const Duration(seconds: 4),
+          behavior: SnackBarBehavior.floating,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
+    }
   }
   
   Future<void> _loadTechnicianProfile() async {
@@ -56,7 +127,7 @@ class _TechnicianDashboardScreenState extends State<TechnicianDashboardScreen> {
     final bookingProvider = Provider.of<BookingProvider>(context, listen: false);
     
     final technicianId = authProvider.currentUser?.email ?? '';
-    print('📋 Loading bookings untuk teknisi: $technicianId');
+    print(' Loading bookings untuk teknisi: $technicianId');
     
     await bookingProvider.loadBookingsForTechnician(technicianId);
     setState(() {});
@@ -89,13 +160,13 @@ class _TechnicianDashboardScreenState extends State<TechnicianDashboardScreen> {
         backgroundColor: Colors.orange.shade800,
         foregroundColor: Colors.white,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
-              _loadBookings();
-              _loadTechnicianProfile();
-            },
-            tooltip: 'Refresh',
+          // Indikator real-time aktif
+          const Padding(
+            padding: EdgeInsets.only(right: 4),
+            child: Tooltip(
+              message: 'Auto-refresh aktif (setiap 10 detik)',
+              child: Icon(Icons.wifi, color: Colors.greenAccent, size: 20),
+            ),
           ),
           IconButton(
             icon: const Icon(Icons.logout),
@@ -367,8 +438,7 @@ class _TechnicianDashboardScreenState extends State<TechnicianDashboardScreen> {
     return number.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.');
   }
   
-  // ==================== PROFIL SCREEN DENGAN FOTO ====================
-  
+
   Widget _buildTechnicianProfileScreen(AuthProvider authProvider, String technicianName) {
     final user = authProvider.currentUser;
     
@@ -376,7 +446,6 @@ class _TechnicianDashboardScreenState extends State<TechnicianDashboardScreen> {
       return const Center(child: CircularProgressIndicator());
     }
     
-    // Ambil photo_url dari database
     String photoUrl = _technicianData?.photoUrl ?? '';
     bool hasPhoto = photoUrl.isNotEmpty;
     
@@ -384,7 +453,6 @@ class _TechnicianDashboardScreenState extends State<TechnicianDashboardScreen> {
       padding: const EdgeInsets.all(20),
       child: Column(
         children: [
-          // 🔥 FOTO PROFIL
           GestureDetector(
             onTap: () {
               if (hasPhoto) {

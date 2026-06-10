@@ -6,8 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class AuthService {
   static const _tokenKey = 'auth_token';
 
-  // Mock login endpoint – replace with your real API when available
-  static const _loginUrl = 'https://example.com/api/login';
+  static const _loginUrl = 'http://192.168.0.181:3000/fixit_api/login';
 
   Future<bool> login(String email, String password) async {
     final response = await http.post(

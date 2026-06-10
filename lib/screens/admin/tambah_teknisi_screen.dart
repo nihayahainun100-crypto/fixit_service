@@ -117,7 +117,6 @@ class _TambahTeknisiScreenState extends State<TambahTeknisiScreen> {
 
   Future<void> _saveTeknisi() async {
     if (!_formKey.currentState!.validate()) {
-      // Scroll ke atas untuk menampilkan error pertama
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Periksa kembali isian form yang belum benar'),
@@ -130,7 +129,6 @@ class _TambahTeknisiScreenState extends State<TambahTeknisiScreen> {
 
     setState(() => _isLoading = true);
 
-    // Upload foto terlebih dahulu jika ada gambar baru
     String? photoUrl;
     try {
       photoUrl = await _uploadImage();
@@ -179,7 +177,6 @@ class _TambahTeknisiScreenState extends State<TambahTeknisiScreen> {
         );
         Navigator.pop(context, true);
       } else {
-        // Tampilkan dialog error yang lebih informatif
         showDialog(
           context: context,
           builder: (ctx) => AlertDialog(
@@ -220,7 +217,6 @@ class _TambahTeknisiScreenState extends State<TambahTeknisiScreen> {
           key: _formKey,
           child: Column(
             children: [
-              // 🔥 FOTO TEKNISI
               GestureDetector(
                 onTap: _pickImage,
                 child: Container(
@@ -267,7 +263,6 @@ class _TambahTeknisiScreenState extends State<TambahTeknisiScreen> {
                 ),
               const SizedBox(height: 20),
 
-              // Nama Teknisi
               TextFormField(
                 controller: _nameController,
                 decoration: const InputDecoration(
@@ -284,7 +279,6 @@ class _TambahTeknisiScreenState extends State<TambahTeknisiScreen> {
               ),
               const SizedBox(height: 12),
 
-              // Email
               TextFormField(
                 controller: _emailController,
                 decoration: const InputDecoration(
@@ -301,8 +295,6 @@ class _TambahTeknisiScreenState extends State<TambahTeknisiScreen> {
                 },
               ),
               const SizedBox(height: 12),
-
-              // No Telepon
               TextFormField(
                 controller: _phoneController,
                 decoration: const InputDecoration(
@@ -321,7 +313,6 @@ class _TambahTeknisiScreenState extends State<TambahTeknisiScreen> {
               ),
               const SizedBox(height: 12),
 
-              // Deskripsi / Nama Toko
               TextFormField(
                 controller: _shopNameController,
                 decoration: const InputDecoration(
@@ -332,7 +323,6 @@ class _TambahTeknisiScreenState extends State<TambahTeknisiScreen> {
               ),
               const SizedBox(height: 12),
 
-              // Alamat
               TextFormField(
                 controller: _addressController,
                 decoration: const InputDecoration(
@@ -349,7 +339,7 @@ class _TambahTeknisiScreenState extends State<TambahTeknisiScreen> {
               ),
               const SizedBox(height: 12),
 
-              // Pengalaman
+
               TextFormField(
                 controller: _experienceController,
                 decoration: const InputDecoration(

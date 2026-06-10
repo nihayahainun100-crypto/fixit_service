@@ -1,3 +1,5 @@
+import '../services/api_service.dart';
+
 class Technician {
   int? id;
   final String userId;
@@ -33,6 +35,19 @@ class Technician {
     this.totalReviews = 0,
   });
 
+  static String _sanitizePhotoUrl(String url) {
+    if (url.isEmpty) return '';
+    final regex = RegExp(r'http://([^/]+)/');
+    final match = regex.firstMatch(url);
+    if (match != null) {
+      final host = match.group(1);
+      if (host != null && (host.contains('.') || host.contains(':'))) {
+        return url.replaceFirst(host, ApiService.ipAddress);
+      }
+    }
+    return url;
+  }
+
   factory Technician.fromJson(Map<String, dynamic> json) {
     print('🔧 Parsing JSON: $json');
     
@@ -53,7 +68,7 @@ class Technician {
       priceEstimate: json['price_estimate'] ?? 0,
       isPremiumListing: json['is_premium'] ?? false,
       isAvailable: json['is_available'] ?? true,
-      photoUrl: json['photo_url'] ?? '',
+      photoUrl: _sanitizePhotoUrl(json['photo_url'] ?? ''),
       rating: json['rating']?.toDouble() ?? 0,
       totalReviews: json['total_reviews'] ?? 0,
     );

@@ -84,7 +84,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   }
 }
 
-// ==================== KELOLA CUSTOMER SCREEN ====================
 class KelolaCustomerScreen extends StatefulWidget {
   const KelolaCustomerScreen({super.key});
 
@@ -163,7 +162,6 @@ class _KelolaCustomerScreenState extends State<KelolaCustomerScreen> {
   }
 }
 
-// ==================== LAPORAN SCREEN ====================
 class LaporanScreen extends StatelessWidget {
   const LaporanScreen({super.key});
 

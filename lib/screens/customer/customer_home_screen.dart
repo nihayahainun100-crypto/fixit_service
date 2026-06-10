@@ -8,6 +8,9 @@ import '../../widgets/announcement_banner.dart';
 import 'technician_detail_screen.dart';
 import 'my_bookings_screen.dart';
 import '../auth/login_screen.dart';
+import '../../providers/booking_provider.dart';
+import '../../services/socket_service.dart';
+import '../../services/notification_service.dart';
 
 class CustomerHomeScreen extends StatefulWidget {
   const CustomerHomeScreen({super.key});
@@ -22,10 +25,124 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
   bool _isLoading = true;
   String _errorMessage = '';
 
+  void _onBookingProviderChange() {
+    if (!mounted) return;
+    final bookingProvider = Provider.of<BookingProvider>(context, listen: false);
+    if (bookingProvider.latestUpdateMessage != null) {
+      final msg = bookingProvider.latestUpdateMessage!;
+      bookingProvider.clearLatestUpdateMessage();
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.notifications_active, color: Colors.amber),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  msg,
+                  style: const TextStyle(fontWeight: FontWeight.w500),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: Colors.blue.shade900,
+          duration: const Duration(seconds: 7),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
+    }
+  }
+
+  bool _wsInitialized = false;
+
   @override
   void initState() {
     super.initState();
     _loadTeknisi();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _wsInitialized) return;
+      _wsInitialized = true;
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final bookingProvider = Provider.of<BookingProvider>(context, listen: false);
+      final user = authProvider.currentUser;
+      if (user != null) {
+        final email = user.email;
+        bookingProvider.loadBookingsForCustomer(email);
+        SocketService().connect(
+          onBookingUpdated: (data) async {
+            print('🔔 Socket: Booking updated $data');
+            
+            if (data['user_id'] != email) return;
+            
+            final bookingId = data['booking_id'].toString();
+            final statusStr = data['status'];
+            final notes = data['notes'] ?? '';
+            
+            bookingProvider.updateBookingStatusLocal(bookingId, statusStr, notes);
+            
+            bookingProvider.loadBookingsForCustomer(email);
+            
+            if (mounted) {
+              String statusStrIndonesian = 'Diperbarui';
+              if (statusStr == 'confirmed') statusStrIndonesian = 'Dikonfirmasi';
+              if (statusStr == 'ongoing') statusStrIndonesian = 'Sedang Dikerjakan';
+              if (statusStr == 'completed') statusStrIndonesian = 'Selesai';
+              if (statusStr == 'cancelled') statusStrIndonesian = 'Dibatalkan';
+              
+              final message = 'Status booking: $statusStrIndonesian' + 
+                  (notes.isNotEmpty ? '\nCatatan: $notes' : '');
+                  
+              NotificationService().showNotification(
+                title: 'Status Pesanan Diperbarui',
+                body: message,
+              );
+                  
+              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Row(
+                    children: [
+                      const Icon(Icons.info_outline, color: Colors.white),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          message,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ],
+                  ),
+                  backgroundColor: Colors.blue.shade800,
+                  duration: const Duration(seconds: 4),
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              );
+            }
+          },
+          onAnnouncementReceived: (data) {
+            final appProvider = Provider.of<AppProvider>(context, listen: false);
+            final message = data['message'] ?? '';
+            appProvider.updateAnnouncement(message);
+          },
+        );
+        bookingProvider.addListener(_onBookingProviderChange);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    try {
+      final bookingProvider = Provider.of<BookingProvider>(context, listen: false);
+      bookingProvider.removeListener(_onBookingProviderChange);
+      SocketService().disconnect();
+    } catch (e) {
+      // ignore
+    }
+    super.dispose();
   }
 
   Future<void> _loadTeknisi() async {
@@ -48,7 +165,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
         });
         
         for (var t in _teknisi) {
-          print('✅ Teknisi tampil: ${t.name}');
+          print(' Teknisi tampil: ${t.name}');
         }
       } else {
         setState(() {
@@ -57,7 +174,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
         });
       }
     } catch (e) {
-      print('❌ Load teknisi error: $e');
+      print(' Load teknisi error: $e');
       setState(() {
         _errorMessage = 'Gagal koneksi ke server';
         _isLoading = false;
@@ -168,7 +285,6 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                 padding: const EdgeInsets.all(12),
                 child: Row(
                   children: [
-                    // 🔥 FOTO TEKNISI (DENGAN FALLBACK ICON)
                     Container(
                       width: 70,
                       height: 70,

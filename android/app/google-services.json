@@ -1,45 +1,37 @@
 {
   "project_info": {
-    "project_number": "985453165115",
-    "project_id": "fixitservices-9d811",
-    "storage_bucket": "fixitservices-9d811.firebasestorage.app"
+    "project_number": "483814936147",
+    "project_id": "fixitservice-41067",
+    "storage_bucket": "fixitservice-41067.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:985453165115:android:113ad53c8622da34653a1e",
+        "mobilesdk_app_id": "1:483814936147:android:0d8cc1d703f6e668fb00a6",
         "android_client_info": {
           "package_name": "com.example.fixit_service"
         }
       },
       "oauth_client": [
         {
-          "client_id": "985453165115-qieudpin326g6j8i34rkeq4qvfoued4e.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.example.fixit_service",
-            "certificate_hash": "4f273b9dff61a8caaa39f4c620946ccf976492b3"
-          }
-        },
-        {
-          "client_id": "985453165115-bs8280atocq0rke1jdl6k4krna1v5vf0.apps.googleusercontent.com",
+          "client_id": "483814936147-143u7sknqh3eoamb7kbnrclt9d0v61qn.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyBaZoWA6qaZOmMEUDhSCXIKld91LMbXNno"
+          "current_key": "AIzaSyDaHg3LlF_9_XAU64zeT6WV4FOh6OJdo24"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "985453165115-bs8280atocq0rke1jdl6k4krna1v5vf0.apps.googleusercontent.com",
+              "client_id": "483814936147-143u7sknqh3eoamb7kbnrclt9d0v61qn.apps.googleusercontent.com",
               "client_type": 3
             },
             {
-              "client_id": "985453165115-f5sbtspkcg6m8svnbpkv8epaogmltdk7.apps.googleusercontent.com",
+              "client_id": "483814936147-4c57c1ut3a31mtoijplmb8440ra6e3j9.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
                 "bundle_id": "com.example.fixitService"

@@ -41,7 +41,6 @@ class ReviewProvider extends ChangeNotifier {
     _reviews.add(review);
     notifyListeners();
 
-    // Send to server database
     await ApiService.createReview({
       'booking_id': bookingId,
       'technician_id': technicianId,
@@ -52,9 +51,8 @@ class ReviewProvider extends ChangeNotifier {
     });
   }
   
-  // Update technician rating (mock)
   Future<void> updateTechnicianRating(Technician technician) async {
-    // In real app, update in database
+
     notifyListeners();
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../customer/customer_home_screen.dart';
+
 import 'login_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -39,7 +40,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
       }
 
       if (success && mounted) {
-        // Auto login after registration
         final loginSuccess = await authProvider.login(
           email: _emailController.text.trim(),
           password: _passwordController.text,
@@ -97,7 +97,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // Icon
+                        
                         const Icon(
                           Icons.person_add,
                           size: 60,
@@ -116,7 +116,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                         const SizedBox(height: 8),
                         
-                        // Subtitle
+                        
                         const Text(
                           'Daftar untuk booking service laptop/PC di Indramayu',
                           style: TextStyle(fontSize: 12, color: Colors.grey),
@@ -124,7 +124,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                         const SizedBox(height: 32),
                         
-                        // Name Field
+                        
                         TextFormField(
                           controller: _nameController,
                           decoration: const InputDecoration(
@@ -144,7 +144,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                         const SizedBox(height: 16),
                         
-                        // Email Field
+                  
                         TextFormField(
                           controller: _emailController,
                           decoration: const InputDecoration(
@@ -165,7 +165,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                         const SizedBox(height: 16),
                         
-                        // Phone Field
+                    
                         TextFormField(
                           controller: _phoneController,
                           decoration: const InputDecoration(
@@ -186,7 +186,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                         const SizedBox(height: 16),
                         
-                        // Password Field
+                  
                         TextFormField(
                           controller: _passwordController,
                           decoration: InputDecoration(
@@ -219,7 +219,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                         const SizedBox(height: 16),
                         
-                        // Confirm Password Field
                         TextFormField(
                           controller: _confirmPasswordController,
                           decoration: InputDecoration(
@@ -252,7 +251,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                         const SizedBox(height: 24),
                         
-                        // Register Button
                         if (_isLoading)
                           const CircularProgressIndicator()
                         else
@@ -277,7 +275,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                         const SizedBox(height: 16),
                         
-                        // Login Link
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [

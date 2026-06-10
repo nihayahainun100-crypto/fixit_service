@@ -1,12 +1,6 @@
 import 'package:flutter/foundation.dart';
 
-/// AppProvider manages global application configuration and announcement state.
-///
-/// Under clean architecture rules, this provider contains only business logic
-/// and state variables. All UI layout and presentation (widgets, context)
-/// are strictly separated into the widget layer (e.g. AnnouncementBanner).
 class AppProvider extends ChangeNotifier {
-  // Global announcement state
   String _announcement = "Promo Spesial Juni: Diskon Service Laptop 10%!";
   bool _isMaintenanceMode = false;
   int _activeNotificationCount = 3;

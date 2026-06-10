@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../services/api_service.dart';
+import '../../services/socket_service.dart';
+import '../../services/notification_service.dart';
 import '../customer/customer_home_screen.dart';
 import '../technician/technician_dashboard_screen.dart';
 import '../admin/admin_dashboard_screen.dart';
@@ -22,65 +25,96 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
 
   Future<void> _handleLogin(AuthProvider authProvider) async {
-  if (_formKey.currentState == null) return;
+    if (_formKey.currentState == null) return;
 
-  if (_formKey.currentState!.validate()) {
-    setState(() => _isLoading = true);
+    if (_formKey.currentState!.validate()) {
+      setState(() => _isLoading = true);
 
-    final email = _emailController.text.trim();
-    final password = _passwordController.text;
+      final email = _emailController.text.trim();
+      final password = _passwordController.text;
 
-    try {
-      final success = await authProvider.login(email: email, password: password);
+      try {
+        final success = await authProvider.login(email: email, password: password);
 
-      if (mounted) setState(() => _isLoading = false);
+        if (mounted) setState(() => _isLoading = false);
 
-      if (success && mounted) {
-        final user = authProvider.currentUser;
-        
-        print(' USER ROLE: ${user?.role} ');
-        print(' USER EMAIL: ${user?.email} ');
-        
-        // 🔥 PAKSA BERDASARKAN ROLE
-        if (user?.role == 'technician') {
-          print('✅ MASUK KE TECHNICIAN DASHBOARD');
-          Navigator.pushReplacement(
-            context, 
-            MaterialPageRoute(builder: (_) => const TechnicianDashboardScreen())
-          );
-        } else if (user?.role == 'admin') {
-          print('✅ MASUK KE ADMIN DASHBOARD');
-          Navigator.pushReplacement(
-            context, 
-            MaterialPageRoute(builder: (_) => const AdminDashboardScreen())
-          );
-        } else {
-          print('✅ MASUK KE CUSTOMER HOME');
-          Navigator.pushReplacement(
-            context, 
-            MaterialPageRoute(builder: (_) => const CustomerHomeScreen())
+        if (success && mounted) {
+          final user = authProvider.currentUser;
+          
+          print(' USER ROLE: ${user?.role} ');
+          print(' USER EMAIL: ${user?.email} ');
+          
+          _initSocketAndNotification(user!);
+          
+          if (user.role == 'technician') {
+            print(' MASUK KE TECHNICIAN DASHBOARD');
+            Navigator.pushReplacement(
+              context, 
+              MaterialPageRoute(builder: (_) => const TechnicianDashboardScreen())
+            );
+          } else if (user.role == 'admin') {
+            print(' MASUK KE ADMIN DASHBOARD');
+            Navigator.pushReplacement(
+              context, 
+              MaterialPageRoute(builder: (_) => const AdminDashboardScreen())
+            );
+          } else {
+            print(' MASUK KE CUSTOMER HOME');
+            Navigator.pushReplacement(
+              context, 
+              MaterialPageRoute(builder: (_) => const CustomerHomeScreen())
+            );
+          }
+        } else if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Email atau password salah!'),
+              backgroundColor: Colors.red,
+            ),
           );
         }
-      } else if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Email atau password salah!'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } catch (e) {
-      print('Login error: $e');
-      if (mounted) {
-        setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
-        );
+      } catch (e) {
+        print('Login error: $e');
+        if (mounted) {
+          setState(() => _isLoading = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          );
+        }
       }
     }
   }
-}
 
+  void _initSocketAndNotification(dynamic user) async {
+    try {
+      SocketService().connect(
+        onBookingReceived: (data) async {
+          print(' Booking received via Socket.IO: $data');
+
+          await NotificationService().showNotification(
+            title: 'Booking Baru!',
+            body: '${data['customer_name']} membooking service Anda',
+          );
+          
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('🔔 Booking baru dari ${data['customer_name']}'),
+                backgroundColor: Colors.green,
+                duration: const Duration(seconds: 4),
+              ),
+            );
+          }
+        },
+        onConnected: () => print(' Socket.IO connected'),
+        onDisconnected: () => print(' Socket.IO disconnected'),
+      );
+      
+      print(' Socket.IO initialized for user: ${user.email}');
+    } catch (e) {
+      print(' Failed to init Socket.IO: $e');
+    }
+  }
 
   Future<void> _handleGoogleSignIn(AuthProvider authProvider) async {
     setState(() => _isLoading = true);
@@ -102,15 +136,19 @@ class _LoginScreenState extends State<LoginScreen> {
           );
         } else {
           final user = result['user'];
-          if (user != null && user.role == 'technician') {
-            Navigator.pushReplacement(
-                context, MaterialPageRoute(builder: (_) => const TechnicianDashboardScreen()));
-          } else if (user != null && user.role == 'admin') {
-            Navigator.pushReplacement(
-                context, MaterialPageRoute(builder: (_) => const AdminDashboardScreen()));
-          } else {
-            Navigator.pushReplacement(
-                context, MaterialPageRoute(builder: (_) => const CustomerHomeScreen()));
+          if (user != null) {
+            _initSocketAndNotification(user);
+            
+            if (user.role == 'technician') {
+              Navigator.pushReplacement(
+                  context, MaterialPageRoute(builder: (_) => const TechnicianDashboardScreen()));
+            } else if (user.role == 'admin') {
+              Navigator.pushReplacement(
+                  context, MaterialPageRoute(builder: (_) => const AdminDashboardScreen()));
+            } else {
+              Navigator.pushReplacement(
+                  context, MaterialPageRoute(builder: (_) => const CustomerHomeScreen()));
+            }
           }
         }
       } else if (mounted) {
@@ -234,7 +272,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             child: OutlinedButton.icon(
                               onPressed: () => _handleGoogleSignIn(authProvider),
                               icon: Image.asset(
-                                'assets/images/google_g.png', // G polos
+                                'assets/images/google_g.png',
                                 width: 24,
                                 height: 24,
                               ),

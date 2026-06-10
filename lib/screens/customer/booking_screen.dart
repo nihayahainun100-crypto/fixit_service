@@ -5,7 +5,6 @@ import '../../models/technician_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/booking_provider.dart';
 
-// 🔥 LIST SERVICE TYPES (langsung di dalam file)
 List<String> getServiceTypes() {
   return [
     'Diagnostic',

@@ -41,48 +41,46 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyCnqdVPV4kOeVSP7S0QVoU--fTd39kXqao',
-    appId: '1:985453165115:web:97e485b125c3bf94653a1e',
-    messagingSenderId: '985453165115',
-    projectId: 'fixitservices-9d811',
-    authDomain: 'fixitservices-9d811.firebaseapp.com',
-    storageBucket: 'fixitservices-9d811.firebasestorage.app',
+    apiKey: 'AIzaSyBymbFJWEDR4q8IavXcL7gr0DvNcD36VFE',
+    appId: '1:483814936147:web:27df58619b58aaadfb00a6',
+    messagingSenderId: '483814936147',
+    projectId: 'fixitservice-41067',
+    authDomain: 'fixitservice-41067.firebaseapp.com',
+    storageBucket: 'fixitservice-41067.firebasestorage.app',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyBaZoWA6qaZOmMEUDhSCXIKld91LMbXNno',
-    appId: '1:985453165115:android:113ad53c8622da34653a1e',
-    messagingSenderId: '985453165115',
-    projectId: 'fixitservices-9d811',
-    storageBucket: 'fixitservices-9d811.firebasestorage.app',
+    apiKey: 'AIzaSyDaHg3LlF_9_XAU64zeT6WV4FOh6OJdo24',
+    appId: '1:483814936147:android:0d8cc1d703f6e668fb00a6',
+    messagingSenderId: '483814936147',
+    projectId: 'fixitservice-41067',
+    storageBucket: 'fixitservice-41067.firebasestorage.app',
   );
-
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyAId454RTtb6cxnahIbP3FjbAh2lxF8Qms',
-    appId: '1:985453165115:ios:2b64b423d97d51ee653a1e',
-    messagingSenderId: '985453165115',
-    projectId: 'fixitservices-9d811',
-    storageBucket: 'fixitservices-9d811.firebasestorage.app',
-    iosClientId: '985453165115-f5sbtspkcg6m8svnbpkv8epaogmltdk7.apps.googleusercontent.com',
+    apiKey: 'AIzaSyCZ1JSE-51JcQPrH32E1wAyjx0TkQJNNko',
+    appId: '1:483814936147:ios:cf88ea879667257afb00a6',
+    messagingSenderId: '483814936147',
+    projectId: 'fixitservice-41067',
+    storageBucket: 'fixitservice-41067.firebasestorage.app',
+    iosClientId: '483814936147-4c57c1ut3a31mtoijplmb8440ra6e3j9.apps.googleusercontent.com',
     iosBundleId: 'com.example.fixitService',
   );
-
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyAId454RTtb6cxnahIbP3FjbAh2lxF8Qms',
-    appId: '1:985453165115:ios:2b64b423d97d51ee653a1e',
-    messagingSenderId: '985453165115',
-    projectId: 'fixitservices-9d811',
-    storageBucket: 'fixitservices-9d811.firebasestorage.app',
-    iosClientId: '985453165115-f5sbtspkcg6m8svnbpkv8epaogmltdk7.apps.googleusercontent.com',
+    apiKey: 'AIzaSyCZ1JSE-51JcQPrH32E1wAyjx0TkQJNNko',
+    appId: '1:483814936147:ios:cf88ea879667257afb00a6',
+    messagingSenderId: '483814936147',
+    projectId: 'fixitservice-41067',
+    storageBucket: 'fixitservice-41067.firebasestorage.app',
+    iosClientId: '483814936147-4c57c1ut3a31mtoijplmb8440ra6e3j9.apps.googleusercontent.com',
     iosBundleId: 'com.example.fixitService',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyCnqdVPV4kOeVSP7S0QVoU--fTd39kXqao',
-    appId: '1:985453165115:web:65d022190c3cdf71653a1e',
-    messagingSenderId: '985453165115',
-    projectId: 'fixitservices-9d811',
-    authDomain: 'fixitservices-9d811.firebaseapp.com',
-    storageBucket: 'fixitservices-9d811.firebasestorage.app',
+    apiKey: 'AIzaSyBymbFJWEDR4q8IavXcL7gr0DvNcD36VFE',
+    appId: '1:483814936147:web:27df58619b58aaadfb00a6',
+    messagingSenderId: '483814936147',
+    projectId: 'fixitservice-41067',
+    authDomain: 'fixitservice-41067.firebaseapp.com',
+    storageBucket: 'fixitservice-41067.firebasestorage.app',
   );
 }

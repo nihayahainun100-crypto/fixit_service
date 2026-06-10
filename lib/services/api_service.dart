@@ -5,15 +5,16 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 
 class ApiService {
-  // 🔥 IP (WIFI ANDA)
-  static const String _ipAddress = '192.168.0.104';
-  static const int _port = 80;
-  static const String baseUrl = 'http://$_ipAddress/fixit_api/teknisi';
-  static const String bookingUrl = 'http://$_ipAddress/fixit_api/bookings';
-  static const String uploadUrl = 'http://$_ipAddress/fixit_api/uploads';
-  static const String reviewUrl = 'http://$_ipAddress/fixit_api/reviews';
+  static const String ipAddress = '192.168.0.181';
+  static const int _port = 3000;
+  
+  static String get ip => ipAddress;
+  
+  static const String baseUrl = 'http://$ipAddress/fixit_api/teknisi';
+  static const String bookingUrl = 'http://$ipAddress/fixit_api/bookings';
+  static const String uploadUrl = 'http://$ipAddress/fixit_api/uploads';
+  static const String reviewUrl = 'http://$ipAddress/fixit_api/reviews';
 
-  // ==================== HELPER ERROR HANDLER ====================
   static Map<String, dynamic> _handleError(dynamic e, String operation) {
     String message;
     if (e is TimeoutException) {
@@ -44,9 +45,6 @@ class ApiService {
     return {'success': false, 'message': message};
   }
 
-    // ==================== TEKNISI CRUD ====================
-
-  /// READ – Mengambil semua data teknisi dari MySQL
   static Future<Map<String, dynamic>> getAllTeknisi() async {
     const op = 'getAllTeknisi';
     try {
@@ -67,7 +65,6 @@ class ApiService {
     }
   }
 
-  /// CREATE – Menambahkan teknisi baru ke MySQL
   static Future<Map<String, dynamic>> createTeknisi(
       Map<String, dynamic> data) async {
     const op = 'createTeknisi';
@@ -91,7 +88,6 @@ class ApiService {
     }
   }
 
-  /// UPDATE – Memperbarui data teknisi di MySQL
   static Future<Map<String, dynamic>> updateTeknisi(
       Map<String, dynamic> data) async {
     const op = 'updateTeknisi';
@@ -114,7 +110,7 @@ class ApiService {
     }
   }
 
-  /// DELETE – Menghapus teknisi dari MySQL berdasarkan ID
+
   static Future<Map<String, dynamic>> deleteTeknisi(int id) async {
     const op = 'deleteTeknisi';
     try {
@@ -139,7 +135,6 @@ class ApiService {
     }
   }
 
-  // ==================== BOOKING ====================
 
   static Future<Map<String, dynamic>> saveBooking(
       Map<String, dynamic> data) async {
@@ -176,6 +171,23 @@ class ApiService {
       return {'success': false, 'bookings': []};
     } catch (e) {
       print(' Get bookings error: $e');
+      return {'success': false, 'bookings': []};
+    }
+  }
+
+  static Future<Map<String, dynamic>> getBookingsForCustomer(
+      String userId) async {
+    try {
+      final url = Uri.parse(
+          '$bookingUrl/get_by_customer.php?user_id=$userId');
+      final response = await http.get(url).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+      return {'success': false, 'bookings': []};
+    } catch (e) {
+      print(' Get customer bookings error: $e');
       return {'success': false, 'bookings': []};
     }
   }
@@ -287,6 +299,45 @@ class ApiService {
       return {'success': false, 'message': 'Server error'};
     } catch (e) {
       print(' Create review error: $e');
+      return {'success': false, 'message': e.toString()};
+    }
+  }
+  
+  static Future<void> saveFcmToken(String email, String fcmToken) async {
+    try {
+      final url = Uri.parse('http://$ipAddress/ainun/fixit_api/save_fcm_token.php');
+      final response = await http.post(
+        url,
+        body: jsonEncode({'email': email, 'fcm_token': fcmToken}),
+        headers: {'Content-Type': 'application/json'},
+      ).timeout(const Duration(seconds: 10));
+      print(' Save FCM token: ${response.body}');
+    } catch (e) {
+      print(' Save FCM token error: $e');
+    }
+  }
+  static Future<Map<String, dynamic>> sendFcmToTechnician({
+    required String technicianEmail,
+    required String title,
+    required String body,
+    Map<String, dynamic>? extraData,
+  }) async {
+    try {
+      final url = Uri.parse('http://$ipAddress/ainun/fixit_api/send_fcm_notification.php');
+      final response = await http.post(
+        url,
+        body: jsonEncode({
+          'technician_email': technicianEmail,
+          'title': title,
+          'body': body,
+          'extra_data': extraData ?? {},
+        }),
+        headers: {'Content-Type': 'application/json'},
+      ).timeout(const Duration(seconds: 10));
+      if (response.statusCode == 200) return jsonDecode(response.body);
+      return {'success': false, 'message': 'Server error'};
+    } catch (e) {
+      print(' Send FCM error: $e');
       return {'success': false, 'message': e.toString()};
     }
   }

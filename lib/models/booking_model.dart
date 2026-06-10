@@ -43,9 +43,7 @@ class Booking {
     this.isRated = false,
   });
 
-  // 🔥 TAMBAHKAN METHOD fromMap
   factory Booking.fromMap(Map<String, dynamic> map) {
-    // Konversi string status ke enum BookingStatus
     BookingStatus statusEnum;
     switch (map['status']) {
       case 'confirmed':
